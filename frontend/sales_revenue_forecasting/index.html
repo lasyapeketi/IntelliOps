@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>IntelliOps — Sales & Revenue Forecasting</title>
+    <meta name="description" content="AI-powered sales and revenue forecasting dashboard. Enter historical sales data and scenario parameters to generate forward-looking revenue projections." />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <link rel="stylesheet" href="/static/style.css" />
+  </head>
+  <body>
+
+    <!-- Animated Background Particles -->
+    <div class="bg-particles" aria-hidden="true">
+      <div class="particle p1"></div>
+      <div class="particle p2"></div>
+      <div class="particle p3"></div>
+      <div class="particle p4"></div>
+    </div>
+
+    <!-- Top Navigation -->
+    <nav class="navbar">
+      <div class="nav-inner">
+        <div class="nav-brand">
+          <div class="brand-icon">
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+            </svg>
+          </div>
+          <div>
+            <span class="brand-name">IntelliOps</span>
+            <span class="brand-module">Sales &amp; Revenue Forecasting</span>
+          </div>
+        </div>
+        <div class="nav-actions">
+          <div class="api-status" id="apiStatus">
+            <span class="status-dot"></span>
+            <span class="status-text">Checking API...</span>
+          </div>
+          <a href="/docs" target="_blank" class="btn-docs" id="docsLink">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+            </svg>
+            API Docs
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Layout -->
+    <main class="main-layout">
+
+      <!-- Left Panel: Input Form -->
+      <aside class="panel panel-input" id="inputPanel">
+        <div class="panel-header">
+          <h2 class="panel-title">Forecast Parameters</h2>
+          <button type="button" class="btn-sample" id="btnSample" onclick="loadSampleData()">
+            <svg width="13" height="13" fill="none" viewBox="0 0 24 24">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+            </svg>
+            Load Sample
+          </button>
+        </div>
+
+        <form id="forecastForm" onsubmit="handleForecast(event)" novalidate>
+
+          <!-- Historical Sales -->
+          <div class="field-group">
+            <label class="field-label" for="historicalSales">
+              Historical Sales Data
+              <span class="required">*</span>
+            </label>
+            <div class="sales-input-wrapper">
+              <textarea
+                id="historicalSales"
+                class="field-input field-textarea"
+                placeholder="e.g. 12500, 13200, 12800, 14100, 14900, 15600"
+                required
+                aria-describedby="historicalSalesHint"
+              >12500, 13200, 12800, 14100, 14900, 15600</textarea>
+              <div class="sales-count" id="salesCount">6 values</div>
+            </div>
+            <p class="field-hint" id="historicalSalesHint">Comma-separated monthly revenue figures — minimum 3 values required.</p>
+          </div>
+
+          <!-- Historical Chart Preview -->
+          <div class="mini-chart-wrap">
+            <canvas id="historicalMiniChart" height="70"></canvas>
+          </div>
+
+          <!-- Row: Horizon + Budget -->
+          <div class="field-row">
+            <div class="field-group">
+              <label class="field-label" for="forecastHorizon">Forecast Horizon</label>
+              <div class="input-with-unit">
+                <input type="number" id="forecastHorizon" class="field-input" min="1" max="24" value="3" required />
+                <span class="input-unit">months</span>
+              </div>
+              <p class="field-hint">1 to 24 months forward</p>
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="marketingBudget">Marketing Budget</label>
+              <div class="input-with-unit">
+                <span class="input-prefix">$</span>
+                <input type="number" id="marketingBudget" class="field-input has-prefix" min="0" step="100" value="3000" />
+              </div>
+              <p class="field-hint">Planned spend (non-negative)</p>
+            </div>
+          </div>
+
+          <!-- Row: Seasonality + Discount -->
+          <div class="field-row">
+            <div class="field-group">
+              <label class="field-label" for="seasonalityFactor">Seasonality Factor</label>
+              <input type="number" id="seasonalityFactor" class="field-input" min="0.1" max="5.0" step="0.05" value="1.10" />
+              <div class="factor-pills">
+                <button type="button" class="pill" onclick="setSeasonality(0.85)">Low</button>
+                <button type="button" class="pill active" onclick="setSeasonality(1.0)">Neutral</button>
+                <button type="button" class="pill" onclick="setSeasonality(1.15)">Peak</button>
+              </div>
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="discountRate">Discount Rate</label>
+              <div class="input-with-unit">
+                <input type="number" id="discountRate" class="field-input" min="0" max="100" step="0.5" value="5.0" />
+                <span class="input-unit">%</span>
+              </div>
+              <p class="field-hint">0 to 100% planned discount</p>
+            </div>
+          </div>
+
+          <!-- Explanation Toggle -->
+          <div class="toggle-row">
+            <label class="toggle-label" for="includeExplanation">
+              <div class="toggle-info">
+                <span class="toggle-title">Analytical Explanation</span>
+                <span class="toggle-desc">Generate narrative breakdown of forecast drivers</span>
+              </div>
+              <div class="toggle-switch">
+                <input type="checkbox" id="includeExplanation" checked role="switch" />
+                <span class="toggle-track"><span class="toggle-thumb"></span></span>
+              </div>
+            </label>
+          </div>
+
+          <!-- Submit -->
+          <button type="submit" class="btn-forecast" id="btnSubmit">
+            <span class="btn-text">Generate Forecast</span>
+            <svg class="btn-icon" width="18" height="18" fill="none" viewBox="0 0 24 24">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+            </svg>
+            <span class="btn-spinner" id="btnSpinner" aria-hidden="true"></span>
+          </button>
+
+          <!-- Error box -->
+          <div class="alert-error" id="errorBox" role="alert" aria-live="polite" style="display:none;"></div>
+
+        </form>
+      </aside>
+
+      <!-- Right Panel: Results -->
+      <section class="panel panel-results" id="resultsPanel">
+
+        <!-- Empty state -->
+        <div class="empty-state" id="emptyState">
+          <div class="empty-icon">
+            <svg width="56" height="56" fill="none" viewBox="0 0 24 24">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2"
+                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+            </svg>
+          </div>
+          <h3>Run Your First Forecast</h3>
+          <p>Configure parameters on the left and click <strong>Generate Forecast</strong> to see AI-powered revenue projections.</p>
+          <div class="empty-features">
+            <div class="empty-feature"><span class="ef-icon">📈</span><span>Trend-based OLS forecasting</span></div>
+            <div class="empty-feature"><span class="ef-icon">🎯</span><span>95% prediction intervals</span></div>
+            <div class="empty-feature"><span class="ef-icon">⚙️</span><span>Scenario modifiers</span></div>
+          </div>
+        </div>
+
+        <!-- Results content -->
+        <div class="results-content" id="resultsContent" style="display:none;">
+
+          <!-- KPI Row -->
+          <div class="kpi-row" id="kpiRow"></div>
+
+          <!-- Main Chart -->
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <span class="chart-card-title">Revenue Forecast with Confidence Intervals</span>
+              <div class="chart-legend">
+                <span class="legend-dot forecasted"></span><span>Forecasted</span>
+                <span class="legend-dot interval"></span><span>95% Interval</span>
+                <span class="legend-dot historical"></span><span>Historical</span>
+              </div>
+            </div>
+            <div class="chart-wrap">
+              <canvas id="forecastChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Breakdown Table + Side Cards -->
+          <div class="bottom-grid">
+            <div class="table-card">
+              <div class="table-card-header">
+                <span>Period Breakdown</span>
+                <span class="table-tag" id="breakdownTag"></span>
+              </div>
+              <div class="table-wrap">
+                <table id="breakdownTable">
+                  <thead>
+                    <tr>
+                      <th>Period</th>
+                      <th>Forecasted</th>
+                      <th>Base Trend</th>
+                      <th>95% Interval</th>
+                    </tr>
+                  </thead>
+                  <tbody id="breakdownBody"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="side-cards">
+              <div class="meta-card" id="metaCard"></div>
+              <div class="explanation-card" id="explanationCard" style="display:none;"></div>
+            </div>
+          </div>
+
+          <!-- Raw JSON -->
+          <div class="raw-json-section">
+            <button type="button" class="raw-toggle" id="rawToggle" onclick="toggleRaw()">
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+              </svg>
+              View Raw JSON Response
+            </button>
+            <pre class="raw-json" id="rawJson" style="display:none;"></pre>
+          </div>
+
+        </div>
+      </section>
+
+    </main>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>
