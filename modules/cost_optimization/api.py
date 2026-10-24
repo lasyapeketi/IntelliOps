@@ -104,6 +104,19 @@ def error_response(
     )
 
 
+async def get_request_id(request: Request) -> str | None:
+    """Safely extract request_id from a JSON request body."""
+    try:
+        body = await request.json()
+    except (ValueError, UnicodeDecodeError):
+        return None
+
+    if not isinstance(body, dict):
+        return None
+
+    request_id = body.get("request_id")
+    return request_id if isinstance(request_id, str) else None
+
 def register_exception_handlers(app: FastAPI) -> None:
     """Register standard IntelliOps error responses."""
 
@@ -133,7 +146,7 @@ def register_exception_handlers(app: FastAPI) -> None:
             content={
                 "success": False,
                 "use_case": "cost_optimization",
-                "request_id": None,
+                "request_id": await get_request_id(request),
                 "prediction": None,
                 "explanation": None,
                 "model": None,
