@@ -1,11 +1,15 @@
-
+from unittest.mock import patch
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from modules.cost_optimization.api import router
+from modules.cost_optimization.api import (
+    register_exception_handlers,
+    router,
+)
 
 
 app = FastAPI()
+register_exception_handlers(app)
 app.include_router(router)
 client = TestClient(app)
 
@@ -75,6 +79,16 @@ def test_endpoint_rejects_empty_resources():
 
     assert response.status_code == 422
 
+    body = response.json()
+    assert body["success"] is False
+    assert body["use_case"] == "cost_optimization"
+    assert body["request_id"] is None
+    assert body["prediction"] is None
+    assert body["explanation"] is None
+    assert body["model"] is None
+    assert body["errors"]
+    assert body["errors"][0]["code"] == "VALIDATION_ERROR"
+
 
 def test_endpoint_rejects_invalid_capacity():
     payload = sample_request()
@@ -99,3 +113,34 @@ def test_endpoint_rejects_negative_historical_cost():
     )
 
     assert response.status_code == 422
+
+    body = response.json()
+    assert body["success"] is False
+    assert body["use_case"] == "cost_optimization"
+    assert body["prediction"] is None
+    assert body["explanation"] is None
+    assert body["model"] is None
+    assert body["errors"]
+    assert body["errors"][0]["code"] == "VALIDATION_ERROR"
+def test_endpoint_handles_unexpected_errors():
+    with patch(
+        "modules.cost_optimization.api.analyze_costs",
+        side_effect=RuntimeError("Internal database details"),
+    ):
+        response = client.post(
+            "/api/v1/predict/cost_optimization",
+            json=sample_request(),
+        )
+
+    assert response.status_code == 500
+
+    body = response.json()
+    assert body["success"] is False
+    assert body["use_case"] == "cost_optimization"
+    assert body["request_id"] == "req-001"
+    assert body["prediction"] is None
+    assert body["explanation"] is None
+    assert body["model"] is None
+    assert body["errors"]
+    assert body["errors"][0]["code"] == "INTERNAL_ERROR"
+    assert "Internal database details" not in str(body)

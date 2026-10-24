@@ -2,7 +2,8 @@
 from math import isfinite
 from typing import Any
 
-from fastapi import APIRouter
+from fastapi import APIRouter, FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -103,6 +104,58 @@ def error_response(
     )
 
 
+def register_exception_handlers(app: FastAPI) -> None:
+    """Register standard IntelliOps error responses."""
+
+    @app.exception_handler(RequestValidationError)
+    async def validation_exception_handler(
+        request: Request,
+        exc: RequestValidationError,
+    ) -> JSONResponse:
+        errors = [
+            {
+                "code": "VALIDATION_ERROR",
+                "field": (
+                    ".".join(
+                        str(part)
+                        for part in error["loc"]
+                        if part != "body"
+                    )
+                    or None
+                ),
+                "message": error["msg"],
+            }
+            for error in exc.errors()
+        ]
+
+        return JSONResponse(
+            status_code=422,
+            content={
+                "success": False,
+                "use_case": "cost_optimization",
+                "request_id": None,
+                "prediction": None,
+                "explanation": None,
+                "model": None,
+                "errors": errors,
+            },
+        )
+
+    @app.exception_handler(Exception)
+    async def unexpected_exception_handler(
+        request: Request,
+        exc: Exception,
+    ) -> JSONResponse:
+        return error_response(
+            use_case="cost_optimization",
+            request_id=None,
+            status_code=500,
+            code="INTERNAL_ERROR",
+            field=None,
+            message="An unexpected error occurred.",
+        )
+
+
 @router.post("/api/v1/predict/cost_optimization")
 def predict_cost_optimization(request: PredictionRequest):
     if request.use_case != "cost_optimization":
@@ -138,6 +191,15 @@ def predict_cost_optimization(request: PredictionRequest):
             code="VALIDATION_ERROR",
             field="input",
             message=str(exc),
+        )
+    except Exception:
+        return error_response(
+            use_case=request.use_case,
+            request_id=request.request_id,
+            status_code=500,
+            code="INTERNAL_ERROR",
+            field=None,
+            message="An unexpected error occurred.",
         )
 
     flagged_resources = [
