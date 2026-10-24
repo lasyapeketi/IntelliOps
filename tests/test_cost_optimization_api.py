@@ -59,7 +59,7 @@ def test_cost_optimization_endpoint_rejects_wrong_use_case():
         },
     )
 
-    assert response.status_code == 200
+    assert response.status_code == 400
     body = response.json()
     assert body["success"] is False
     assert body["use_case"] == "delivery_delay"

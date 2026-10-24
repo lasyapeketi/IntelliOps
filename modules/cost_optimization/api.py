@@ -2,22 +2,27 @@
 from typing import Any
 
 from fastapi import APIRouter
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 from modules.cost_optimization.service import analyze_costs
 
 
+
 router = APIRouter()
+
 
 class ResourceInput(BaseModel):
     resource_id: str
     total_cost: float
     used_capacity: float
     total_capacity: float
-    
+
+
 class CostOptimizationInput(BaseModel):
     resources: list[ResourceInput] = Field(min_length=1)
     utilization_threshold: float = Field(default=50.0, ge=0, le=100)
+
 
 class PredictionRequest(BaseModel):
     use_case: str
@@ -27,23 +32,26 @@ class PredictionRequest(BaseModel):
 
 
 @router.post("/api/v1/predict/cost_optimization")
-def predict_cost_optimization(request: PredictionRequest) -> dict:
+def predict_cost_optimization(request: PredictionRequest):
     if request.use_case != "cost_optimization":
-        return {
-            "success": False,
-            "use_case": request.use_case,
-            "request_id": request.request_id,
-            "prediction": None,
-            "explanation": None,
-            "model": None,
-            "errors": [
-                {
-                    "code": "VALIDATION_ERROR",
-                    "field": "use_case",
-                    "message": "use_case must be cost_optimization.",
-                }
-            ],
-        }
+        return JSONResponse(
+            status_code=400,
+            content={
+                "success": False,
+                "use_case": request.use_case,
+                "request_id": request.request_id,
+                "prediction": None,
+                "explanation": None,
+                "model": None,
+                "errors": [
+                    {
+                        "code": "VALIDATION_ERROR",
+                        "field": "use_case",
+                        "message": "use_case must be cost_optimization.",
+                    }
+                ],
+            },
+        )
 
     try:
         result = analyze_costs(
