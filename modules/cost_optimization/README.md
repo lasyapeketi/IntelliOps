@@ -83,3 +83,22 @@ The prediction includes:
 From the repository root:
 
 `python -m pytest tests -v`
+
+
+## Evaluation
+
+The current implementation uses deterministic, rule-based calculations rather
+than a trained machine-learning model. Therefore, model-performance metrics
+such as accuracy, precision, recall, and F1-score are not applicable to the
+current version.
+
+Validation is currently covered by automated unit and API tests for cost and
+utilization calculations, historical cost variance, threshold handling,
+invalid inputs, and error responses. The full current test suite contains 21
+tests.
+
+Evaluation against real business data has not been performed because no real
+business dataset is included. Before production use, the module should be
+evaluated with an approved dataset using business-relevant measures such as
+the correctness of cost calculations, the usefulness of flagged variances,
+and the reviewability of resource-saving opportunities.
