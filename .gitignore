@@ -1,0 +1,21 @@
+
+# Python cache
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Secrets
+.env
+.env.*
+
+# Generated model and processed data
+modules/inventory_optimization/*.joblib
+data/processed/
+
+# Logs
+*.log
+
+# Raw dataset
+data/*.xlsx
