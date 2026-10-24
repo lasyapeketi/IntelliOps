@@ -1,0 +1,21 @@
+
+# Backend API
+fastapi
+uvicorn[standard]
+python-multipart
+pydantic
+
+# Data processing
+pandas
+numpy
+
+# Machine Learning
+scikit-learn
+
+# Data visualization and analysis
+matplotlib
+seaborn
+plotly
+
+# Utilities
+joblib
