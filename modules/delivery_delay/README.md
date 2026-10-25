@@ -225,4 +225,3 @@ python -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8000
 - **OpenAPI Schema:** `http://127.0.0.1:8000/openapi.json`
 - **Health Check:** `GET http://127.0.0.1:8000/health`
 - **Prediction Endpoint:** `POST http://127.0.0.1:8000/api/v1/predict/delivery_delay`
-
