@@ -1,0 +1,7 @@
+Download the CSV from:
+https://www.kaggle.com/datasets/pavansubhasht/ibm-hr-analytics-attrition-dataset
+
+Place the downloaded file in this folder and ensure its name is:
+WA_Fn-UseC_-HR-Employee-Attrition.csv
+
+The raw public dataset is not bundled with this project.
