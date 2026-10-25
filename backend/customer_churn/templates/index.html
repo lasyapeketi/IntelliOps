@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- Hero Banner -->
+    <div class="hero-card">
+        <div class="hero-content">
+            <h2 class="hero-subtitle">MACHINE LEARNING ANALYTICS</h2>
+            <h1 class="hero-title">Predict. Understand. <span class="gradient-text">Retain.</span></h1>
+            <p class="hero-description">
+                Identify high-risk customers, uncover key churn drivers using Explainable AI (XAI), and deploy automated retention campaigns with our state-of-the-art predictive analytics platform.
+            </p>
+            <div class="hero-actions">
+                <a href="{{ url_for('upload_page') }}" class="btn btn-primary">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <span>Upload CSV Dataset</span>
+                </a>
+                <a href="{{ url_for('prediction_page') }}" class="btn btn-secondary">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    <span>Manual Prediction</span>
+                </a>
+            </div>
+        </div>
+        <div class="hero-illustration">
+            <div class="circle-graphic"></div>
+            <i class="fa-solid fa-chart-pie illustration-icon"></i>
+        </div>
+    </div>
+
+    <!-- Statistics Grid -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon purple-bg">
+                <i class="fa-solid fa-file-invoice-dollar"></i>
+            </div>
+            <div class="stat-details">
+                <h3 class="stat-value">{{ stats.total_uploads }}</h3>
+                <p class="stat-label">Datasets Uploaded</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon blue-bg">
+                <i class="fa-solid fa-gears"></i>
+            </div>
+            <div class="stat-details">
+                <h3 class="stat-value">{% if stats.models_trained > 0 %}Active{% else %}Inactive{% endif %}</h3>
+                <p class="stat-label">ML Model Status</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon magenta-bg">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <div class="stat-details">
+                <h3 class="stat-value">{{ stats.total_predictions }}</h3>
+                <p class="stat-label">Predictions Processed</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Platform Features Highlight -->
+    <h2 class="section-title">Core System Features</h2>
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-header">
+                <i class="fa-solid fa-microchip"></i>
+                <h3>Multi-Model Pipeline</h3>
+            </div>
+            <p>Automatically preprocesses features and trains Logistic Regression, Random Forest, Decision Tree, SVM, and XGBoost models, selecting the best model based on F1-Score.</p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-header">
+                <i class="fa-solid fa-brain"></i>
+                <h3>Explainable AI (XAI)</h3>
+            </div>
+            <p>Examine individual customer predictions to uncover local churn drivers, understanding precisely why a customer is flagged as high risk (e.g. Month-to-month contracts, high monthly charges).</p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-header">
+                <i class="fa-solid fa-chart-column"></i>
+                <h3>Interactive Analytics</h3>
+            </div>
+            <p>Utilize interactive Plotly dashboards to review feature correlations, contract summaries, monthly charges distribution, and machine learning ROC / Confusion matrices.</p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-header">
+                <i class="fa-solid fa-file-pdf"></i>
+                <h3>Automated Reports</h3>
+            </div>
+            <p>Batch predict thousands of accounts at once, filter and search prediction lists, and download detailed executive PDF summaries and CSV prediction results.</p>
+        </div>
+    </div>
+
+    <!-- Recent Uploads Section -->
+    {% if stats.recent_uploads %}
+    <div class="recent-uploads-section">
+        <h2 class="section-title">Recent Activity</h2>
+        <div class="glass-table-wrapper">
+            <table class="responsive-table">
+                <thead>
+                    <tr>
+                        <th>File Name</th>
+                        <th>Records Count</th>
+                        <th>Features Count</th>
+                        <th>Uploaded On</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for upload in stats.recent_uploads %}
+                    <tr>
+                        <td><i class="fa-regular fa-file-excel table-icon-csv"></i> <b>{{ upload.filename }}</b></td>
+                        <td>{{ upload.rows }}</td>
+                        <td>{{ upload.columns }}</td>
+                        <td>{{ upload.timestamp }}</td>
+                        <td>
+                            <a href="{{ url_for('dashboard_page') }}" class="table-action-btn">
+                                <i class="fa-solid fa-chart-line"></i> View Analysis
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

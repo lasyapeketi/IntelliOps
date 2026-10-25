@@ -5,17 +5,19 @@ uvicorn[standard]
 python-multipart
 pydantic
 
+# Testing
+pytest
+httpx2==2.16.0
+
 # Data processing
 pandas
 numpy
 
 # Machine Learning
-scikit-learn
+scikit-learn==1.9.0
+joblib
 
 # Data visualization and analysis
 matplotlib
 seaborn
 plotly
-
-# Utilities
-joblib

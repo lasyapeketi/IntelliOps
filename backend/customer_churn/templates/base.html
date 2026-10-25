@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Churn Prediction System</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Plotly.js for Interactive Charts -->
+    <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}" error-fallback>
+</head>
+<body>
+    <!-- App Container -->
+    <div class="app-container">
+
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <i class="fa-solid fa-users-gear logo-icon"></i>
+                <span class="logo-text">ChurnNexus</span>
+            </div>
+
+            <nav class="sidebar-menu">
+                <a href="{{ url_for('index') }}" class="menu-item {% if request.path == '/' %}active{% endif %}" id="nav-home">
+                    <i class="fa-solid fa-house-chimney"></i>
+                    <span>Home</span>
+                </a>
+                <a href="{{ url_for('upload_page') }}" class="menu-item {% if request.path == '/upload-page' %}active{% endif %}" id="nav-upload">
+                    <i class="fa-solid fa-file-csv"></i>
+                    <span>Upload Dataset</span>
+                </a>
+                <a href="{{ url_for('dashboard_page') }}" class="menu-item {% if request.path == '/dashboard-page' %}active{% endif %}" id="nav-dashboard">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <span>Data & Training</span>
+                </a>
+                <a href="{{ url_for('prediction_page') }}" class="menu-item {% if request.path == '/prediction-page' %}active{% endif %}" id="nav-prediction">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    <span>Predictions</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <p>Status: <span class="badge badge-success">Engine Active</span></p>
+                <p class="footer-version">v1.0.0 &copy; 2026</p>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+
+            <!-- Top Navbar -->
+            <header class="top-navbar">
+                <div class="navbar-left">
+                    <button class="mobile-toggle" id="mobile-sidebar-toggle">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <h1 class="page-title" id="page-title-text">Dashboard</h1>
+                </div>
+
+                <div class="navbar-right">
+                    <!-- Dark Mode Toggle -->
+                    <button class="icon-btn theme-toggle" id="theme-toggle-btn" aria-label="Toggle dark mode" data-tooltip="Toggle Dark/Light Mode">
+                        <i class="fa-solid fa-sun icon-light"></i>
+                        <i class="fa-solid fa-moon icon-dark"></i>
+                    </button>
+
+                    <!-- Notifications Dropdown -->
+                    <div class="dropdown-wrapper">
+                        <button class="icon-btn" id="notification-btn" aria-label="Notifications" data-tooltip="Notifications">
+                            <i class="fa-solid fa-bell"></i>
+                            <span class="notification-badge" id="notification-badge-count" style="display:none;">0</span>
+                        </button>
+                        <div class="dropdown-panel" id="notification-panel">
+                            <div class="dropdown-header">
+                                <h3>Notifications</h3>
+                                <button class="clear-all" id="clear-notifications">Clear All</button>
+                            </div>
+                            <div class="dropdown-body" id="notification-list">
+                                <div class="empty-notification">No new notifications.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Profile Indicator -->
+                    <div class="profile-chip">
+                        <div class="profile-avatar"><i class="fa-solid fa-user-tie"></i></div>
+                        <div class="profile-info">
+                            <span class="profile-name">Analyst</span>
+                            <span class="profile-role">Administrator</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Floating Alert Center -->
+            <div class="alert-container" id="alert-container"></div>
+
+            <!-- Page Contents Placeholder -->
+            <div class="page-content-wrapper">
+                {% block content %}{% endblock %}
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Global Loading Overlay -->
+    <div class="loading-overlay" id="global-loader" style="display: none;">
+        <div class="loader-card">
+            <div class="loader-spinner">
+                <div class="double-bounce1"></div>
+                <div class="double-bounce2"></div>
+            </div>
+            <h3 class="loader-title" id="loader-title-text">Processing Data</h3>
+            <p class="loader-desc" id="loader-desc-text">Please wait while the churn model processes your request.</p>
+            <div class="loader-progress-bar">
+                <div class="loader-progress-fill" id="loader-progress-fill-bar" style="width: 0%;"></div>
+            </div>
+            <span class="loader-percent" id="loader-percent-val">0%</span>
+        </div>
+    </div>
+
+    <!-- Application Scripts -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,375 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="fade-in">
+    <h2 class="section-title">Data Sources & Dataset Ingestion</h2>
+    <p class="section-desc">Connect and ingest your customer data from multiple sources including CSV, Excel workbooks, Public URLs, Hugging Face Hub, and SQL Databases for churn prediction and AI analysis.</p>
+
+    <!-- Source Selection Section -->
+    <div class="source-selector-wrapper">
+        <span class="source-section-tag">DATA SOURCE</span>
+        <div class="source-cards-grid">
+            <!-- 1. CSV Card -->
+            <button type="button" class="source-card active" data-source="csv" id="card-src-csv">
+                <div class="source-card-icon"><i class="fa-solid fa-file-csv"></i></div>
+                <div class="source-card-title">CSV</div>
+                <div class="source-card-sub">Upload .csv</div>
+            </button>
+
+            <!-- 2. Excel Card -->
+            <button type="button" class="source-card" data-source="excel" id="card-src-excel">
+                <div class="source-card-icon"><i class="fa-solid fa-file-excel"></i></div>
+                <div class="source-card-title">Excel</div>
+                <div class="source-card-sub">.xlsx / .xls</div>
+            </button>
+
+            <!-- 3. URL Card -->
+            <button type="button" class="source-card" data-source="url" id="card-src-url">
+                <div class="source-card-icon"><i class="fa-solid fa-link"></i></div>
+                <div class="source-card-title">URL</div>
+                <div class="source-card-sub">Public Link</div>
+            </button>
+
+            <!-- 4. Hugging Face Card -->
+            <button type="button" class="source-card" data-source="hf" id="card-src-hf">
+                <div class="source-card-icon"><i class="fa-solid fa-face-smile-beam"></i></div>
+                <div class="source-card-title">Hugging Face</div>
+                <div class="source-card-sub">Hub Dataset</div>
+            </button>
+
+            <!-- 5. SQL Database Card -->
+            <button type="button" class="source-card" data-source="sql" id="card-src-sql">
+                <div class="source-card-icon"><i class="fa-solid fa-database"></i></div>
+                <div class="source-card-title">SQL Database</div>
+                <div class="source-card-sub">SQLite / MySQL / PG</div>
+            </button>
+        </div>
+    </div>
+
+    <!-- Active Source Input Container -->
+    <div class="upload-container">
+
+        <!-- 1. CSV Source Panel -->
+        <div class="source-panel active" id="panel-csv">
+            <div class="upload-dropzone" id="dropzone">
+                <input type="file" id="file-input" accept=".csv" class="file-input-hidden">
+                <div class="dropzone-content">
+                    <i class="fa-solid fa-cloud-arrow-up dropzone-icon"></i>
+                    <h3>Drag & Drop CSV File Here</h3>
+                    <p>or click to browse local files (maximum 16MB)</p>
+                    <div class="file-info-badge" id="selected-file-badge" style="display: none;">
+                        <i class="fa-solid fa-file-csv"></i>
+                        <span id="selected-file-name">filename.csv</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Excel Source Panel -->
+        <div class="source-panel" id="panel-excel" style="display: none;">
+            <div class="source-form-card">
+                <div class="source-card-header">
+                    <i class="fa-solid fa-file-excel"></i>
+                    <div>
+                        <h3>Excel Dataset</h3>
+                        <p>Upload Excel File (.xlsx, .xls) and select a worksheet</p>
+                    </div>
+                </div>
+
+                <div class="upload-dropzone" id="excel-dropzone">
+                    <input type="file" id="excel-file-input" accept=".xlsx, .xls" class="file-input-hidden">
+                    <div class="dropzone-content">
+                        <i class="fa-solid fa-cloud-arrow-up dropzone-icon"></i>
+                        <h3>Upload Excel File</h3>
+                        <p>Drag and drop or click <strong>[ Choose File ]</strong></p>
+                        <span class="badge badge-info mt-2">Supported: .xlsx, .xls</span>
+                        <div class="file-info-badge" id="excel-selected-badge" style="display: none;">
+                            <i class="fa-regular fa-file-excel"></i>
+                            <span id="excel-selected-name">filename.xlsx</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Worksheet Selection (Shown if multiple sheets exist) -->
+                <div class="sheet-selector-card" id="excel-sheet-container" style="display: none;">
+                    <div class="sheet-prompt">
+                        <i class="fa-solid fa-layer-group"></i>
+                        <div>
+                            <h4>Multiple Worksheets Detected</h4>
+                            <p>Please choose which sheet to load into the ML pipeline:</p>
+                        </div>
+                    </div>
+                    <div class="form-group row-align">
+                        <select class="form-control" id="excel-sheet-select">
+                            <!-- Populated dynamically -->
+                        </select>
+                        <button type="button" class="btn btn-primary" id="btn-load-selected-sheet">
+                            <i class="fa-solid fa-check"></i> Load Worksheet
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Dataset URL Source Panel -->
+        <div class="source-panel" id="panel-url" style="display: none;">
+            <div class="source-form-card">
+                <div class="source-card-header">
+                    <i class="fa-solid fa-link"></i>
+                    <div>
+                        <h3>Dataset URL</h3>
+                        <p>Load tabular data directly from a public CSV or Excel link</p>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="url-input">Public Dataset URL:</label>
+                    <div class="input-with-button">
+                        <input type="url" id="url-input" class="form-control" placeholder="https://raw.githubusercontent.com/username/repo/main/churn.csv">
+                        <button type="button" class="btn btn-primary" id="btn-load-url">
+                            <i class="fa-solid fa-cloud-arrow-down"></i> Load Dataset
+                        </button>
+                    </div>
+                    <small class="form-help-text">Supports direct HTTP/HTTPS links to .csv, .xlsx, or .xls tabular datasets.</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Hugging Face Source Panel -->
+        <div class="source-panel" id="panel-hf" style="display: none;">
+            <div class="source-form-card">
+                <div class="source-card-header">
+                    <i class="fa-solid fa-face-smile-beam"></i>
+                    <div>
+                        <h3>Hugging Face Dataset</h3>
+                        <p>Load curated machine learning datasets from Hugging Face Hub</p>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="hf-dataset-id">Dataset ID:</label>
+                    <div class="input-with-button">
+                        <input type="text" id="hf-dataset-id" class="form-control" placeholder="scikit-learn/churn-prediction" value="scikit-learn/churn-prediction">
+                        <button type="button" class="btn btn-primary" id="btn-load-hf">
+                            <i class="fa-solid fa-download"></i> Load Dataset
+                        </button>
+                    </div>
+                    <small class="form-help-text">Example: <code>scikit-learn/churn-prediction</code>. Fetches using the Hugging Face <code>datasets</code> library.</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. SQL Database Source Panel -->
+        <div class="source-panel" id="panel-sql" style="display: none;">
+            <div class="source-form-card">
+                <div class="source-card-header">
+                    <i class="fa-solid fa-database"></i>
+                    <div>
+                        <h3>SQL Database</h3>
+                        <p>Connect to an operational relational database and query customer tables</p>
+                    </div>
+                </div>
+
+                <div class="sql-config-grid">
+                    <div class="form-group">
+                        <label for="sql-db-type">Database Type:</label>
+                        <select id="sql-db-type" class="form-control">
+                            <option value="sqlite" selected>SQLite</option>
+                            <option value="mysql">MySQL</option>
+                            <option value="postgresql">PostgreSQL</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- SQLite Connection Form -->
+                <div id="sqlite-fields-container">
+                    <div class="upload-dropzone dropzone-compact" id="sqlite-dropzone">
+                        <input type="file" id="sqlite-file-input" accept=".db,.sqlite,.sqlite3" class="file-input-hidden">
+                        <div class="dropzone-content">
+                            <i class="fa-solid fa-database dropzone-icon"></i>
+                            <h4>Upload SQLite Database File</h4>
+                            <p>Choose or drag &amp; drop a <code>.db</code> or <code>.sqlite</code> file</p>
+                            <div class="file-info-badge" id="sqlite-selected-badge" style="display: none;">
+                                <i class="fa-solid fa-database"></i>
+                                <span id="sqlite-selected-name">database.db</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="sql-connect-action mt-3">
+                        <button type="button" class="btn btn-primary" id="btn-sqlite-connect">
+                            <i class="fa-solid fa-plug"></i> Connect &amp; Inspect Tables
+                        </button>
+                    </div>
+                </div>
+
+                <!-- MySQL / PostgreSQL Connection Form -->
+                <div id="remote-sql-fields-container" style="display: none;">
+                    <div class="connection-details-title">
+                        <i class="fa-solid fa-network-wired"></i> Connection details
+                    </div>
+                    <div class="sql-inputs-grid">
+                        <div class="form-group">
+                            <label for="sql-host">Host:</label>
+                            <input type="text" id="sql-host" class="form-control" placeholder="localhost" value="localhost">
+                        </div>
+                        <div class="form-group">
+                            <label for="sql-port">Port:</label>
+                            <input type="number" id="sql-port" class="form-control" placeholder="3306" value="3306">
+                        </div>
+                        <div class="form-group">
+                            <label for="sql-database">Database:</label>
+                            <input type="text" id="sql-database" class="form-control" placeholder="churn_db">
+                        </div>
+                        <div class="form-group">
+                            <label for="sql-username">Username:</label>
+                            <input type="text" id="sql-username" class="form-control" placeholder="root">
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="sql-password">Password:</label>
+                            <input type="password" id="sql-password" class="form-control" placeholder="••••••••">
+                            <small class="form-help-text text-muted">Passwords are processed in memory only and never stored or exposed.</small>
+                        </div>
+                    </div>
+                    <div class="sql-connect-action">
+                        <button type="button" class="btn btn-primary" id="btn-remote-sql-connect">
+                            <i class="fa-solid fa-plug"></i> Connect
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Available Tables Listing (Shown after successful connection) -->
+                <div class="sql-tables-card" id="sql-tables-wrapper" style="display: none;">
+                    <div class="sql-tables-header">
+                        <h4><i class="fa-solid fa-table"></i> Available Tables</h4>
+                        <span class="badge badge-success" id="sql-table-count-badge">0 Tables</span>
+                    </div>
+                    <div class="sql-tables-radio-list" id="sql-tables-radio-group">
+                        <!-- Radio options dynamically injected -->
+                    </div>
+                    <div class="sql-load-action mt-3">
+                        <button type="button" class="btn btn-primary" id="btn-load-sql-table">
+                            <i class="fa-solid fa-download"></i> Load Selected Table
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upload Progress Indicator -->
+        <div class="upload-progress-card" id="upload-progress" style="display: none;">
+            <div class="progress-bar-container">
+                <div class="progress-fill" id="upload-progress-fill" style="width: 0%;"></div>
+            </div>
+            <div class="progress-text-row">
+                <span id="upload-status-text">Ingesting dataset...</span>
+                <span id="upload-percent">0%</span>
+            </div>
+        </div>
+
+        <!-- UNIFIED DATASET PREVIEW (Requirement 6) -->
+        <div class="preview-card" id="dataset-preview-container" style="display: none;">
+            <!-- Dataset Loaded Banner -->
+            <div class="dataset-loaded-banner">
+                <div class="banner-left">
+                    <div class="banner-badge-success">
+                        <i class="fa-solid fa-circle-check"></i>
+                        <span>Dataset Loaded ✓</span>
+                    </div>
+                    <div class="banner-meta-details">
+                        <span class="meta-field"><strong>Source:</strong> <span id="preview-meta-source">CSV</span></span>
+                        <span class="meta-field"><strong>Dataset:</strong> <span id="preview-meta-dataset">filename.csv</span></span>
+                    </div>
+                </div>
+                <div class="banner-right">
+                    <div class="stat-pill-group">
+                        <div class="stat-pill">
+                            <span class="pill-number" id="preview-stat-rows">0</span>
+                            <span class="pill-label">Rows</span>
+                        </div>
+                        <div class="stat-pill">
+                            <span class="pill-number" id="preview-stat-cols">0</span>
+                            <span class="pill-label">Columns</span>
+                        </div>
+                        <div class="stat-pill">
+                            <span class="pill-number" id="preview-stat-missing">0</span>
+                            <span class="pill-label">Missing Values</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Header & Target Status -->
+            <div class="card-header mt-4">
+                <div class="header-left">
+                    <i class="fa-solid fa-table-list"></i>
+                    <h3>Dataset Preview (First 50 Rows)</h3>
+                </div>
+                <div class="header-right">
+                    <span class="badge badge-success" id="target-badge">Target: Churn</span>
+                    <button type="button" class="btn btn-sm btn-outline" id="btn-change-target">
+                        <i class="fa-solid fa-pen-to-square"></i> Change Target
+                    </button>
+                </div>
+            </div>
+
+            <!-- Collapsible Column Schema & Data Types Bar -->
+            <div class="schema-drawer">
+                <details class="schema-details">
+                    <summary class="schema-summary">
+                        <span><i class="fa-solid fa-circle-info"></i> Column Names &amp; Data Types (<span id="schema-col-count">0</span> columns)</span>
+                        <i class="fa-solid fa-chevron-down schema-chevron"></i>
+                    </summary>
+                    <div class="schema-tags-container" id="schema-tags-list">
+                        <!-- Injected dynamically -->
+                    </div>
+                </details>
+            </div>
+
+            <!-- First 50 Rows Glassmorphic Table -->
+            <div class="glass-table-wrapper select-scroll preview-table-scroll">
+                <table class="responsive-table" id="preview-table">
+                    <thead id="preview-thead">
+                        <!-- Columns will be injected dynamically -->
+                    </thead>
+                    <tbody id="preview-tbody">
+                        <!-- Rows will be injected dynamically -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Proceed to Analytics Button -->
+            <div class="preview-actions">
+                <a href="{{ url_for('dashboard_page') }}" class="btn btn-primary btn-large" id="btn-proceed-analysis">
+                    <span>Proceed to Analytics &amp; Training</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Target Column Selector Modal -->
+    <div class="modal-overlay" id="target-modal" style="display: none;">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Target Column Required</h3>
+                <button class="modal-close" id="close-target-modal"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-desc">
+                    Please select the target column in your dataset representing customer churn (e.g. <code>Churn</code>, <code>Status</code>, <code>Active</code>).
+                </p>
+                <div class="form-group">
+                    <label for="target-column-select">Select Target Column</label>
+                    <select class="form-control" id="target-column-select">
+                        <!-- Options will be populated dynamically -->
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="btn-cancel-target">Cancel</button>
+                <button class="btn btn-primary" id="btn-confirm-target">Confirm Target</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

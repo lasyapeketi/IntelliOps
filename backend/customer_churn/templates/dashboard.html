@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="fade-in">
+    <div class="dashboard-header-row">
+        <div>
+            <h2 class="section-title">Data Profiling & Model Training</h2>
+            <p class="section-desc">Profile variables, analyze distributions, and run cross-validation training on multiple machine learning classifiers.</p>
+        </div>
+        {% if dataset_uploaded %}
+        <div class="header-status-indicator">
+            <span class="badge badge-success"><i class="fa-solid fa-database"></i> Dataset: Loaded</span>
+            <span class="badge badge-info" id="active-target-badge"><i class="fa-solid fa-crosshair"></i> Target: {{ target_col }}</span>
+        </div>
+        {% else %}
+        <div class="header-status-indicator">
+            <span class="badge badge-danger"><i class="fa-solid fa-triangle-exclamation"></i> No Dataset Loaded</span>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if not dataset_uploaded %}
+    <div class="no-data-card">
+        <i class="fa-solid fa-chart-column no-data-icon"></i>
+        <h3>Dataset Required</h3>
+        <p>You need to upload a customer churn dataset in CSV format before you can view analytics profiling and train predictive models.</p>
+        <a href="{{ url_for('upload_page') }}" class="btn btn-primary">
+            <i class="fa-solid fa-cloud-arrow-up"></i> Upload Dataset Now
+        </a>
+    </div>
+    {% else %}
+
+    <!-- Tab Controls -->
+    <div class="tab-control-bar">
+        <button class="tab-btn active" data-tab="profiling">
+            <i class="fa-solid fa-circle-info"></i> Data Profiling
+        </button>
+        <button class="tab-btn" data-tab="eda" id="tab-eda-trigger">
+            <i class="fa-solid fa-chart-pie"></i> Interactive EDA
+        </button>
+        <button class="tab-btn" data-tab="training" id="tab-training-trigger">
+            <i class="fa-solid fa-gears"></i> ML Pipeline
+        </button>
+    </div>
+
+    <!-- Tab Panel 1: Data Profiling -->
+    <div class="tab-panel active" id="panel-profiling">
+        <div class="dashboard-grid">
+            <!-- Summary Stats Cards -->
+            <div class="grid-card col-span-3">
+                <h3>Profiling Summary</h3>
+                <div class="mini-stats-grid">
+                    <div class="mini-stat">
+                        <span class="m-label">Total Records</span>
+                        <span class="m-value" id="profile-total-records">Loading...</span>
+                    </div>
+                    <div class="mini-stat">
+                        <span class="m-label">Features Count</span>
+                        <span class="m-value" id="profile-total-columns">Loading...</span>
+                    </div>
+                    <div class="mini-stat">
+                        <span class="m-label">Missing Values</span>
+                        <span class="m-value" id="profile-missing-count">Loading...</span>
+                    </div>
+                    <div class="mini-stat">
+                        <span class="m-label">Duplicate Rows</span>
+                        <span class="m-value" id="profile-duplicate-count">Loading...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Variable Data Types Table -->
+            <div class="grid-card col-span-2">
+                <h3>Column Metadata (Types & Missing)</h3>
+                <div class="table-scroll-wrapper">
+                    <table class="responsive-table condensed" id="table-metadata">
+                        <thead>
+                            <tr>
+                                <th>Column Name</th>
+                                <th>Data Type</th>
+                                <th>Missing Values</th>
+                            </tr>
+                        </thead>
+                        <tbody id="metadata-tbody">
+                            <tr><td colspan="3" class="text-center">Loading metadata...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Numerical Statistics Summary -->
+            <div class="grid-card col-span-2">
+                <h3>Numerical Summary</h3>
+                <div class="table-scroll-wrapper">
+                    <table class="responsive-table condensed" id="table-numerical-summary">
+                        <thead>
+                            <tr>
+                                <th>Metric</th>
+                                <th>Mean</th>
+                                <th>Min</th>
+                                <th>50% (Median)</th>
+                                <th>Max</th>
+                            </tr>
+                        </thead>
+                        <tbody id="numerical-summary-tbody">
+                            <tr><td colspan="5" class="text-center">Loading numerical summary...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab Panel 2: Interactive EDA Charts -->
+    <div class="tab-panel" id="panel-eda">
+        <div class="dashboard-grid">
+            <div class="grid-card col-span-2">
+                <h3>Churn Target Distribution</h3>
+                <div id="chart-churn-dist" class="plotly-chart"></div>
+            </div>
+            <div class="grid-card col-span-2">
+                <h3>Contract Type vs Churn</h3>
+                <div id="chart-contract-churn" class="plotly-chart"></div>
+            </div>
+            <div class="grid-card col-span-2">
+                <h3>Tenure (Months) Distribution</h3>
+                <div id="chart-tenure-dist" class="plotly-chart"></div>
+            </div>
+            <div class="grid-card col-span-2">
+                <h3>Monthly Charges Distribution</h3>
+                <div id="chart-charges-dist" class="plotly-chart"></div>
+            </div>
+            <div class="grid-card col-span-4">
+                <h3>Numerical Correlation Matrix</h3>
+                <div id="chart-correlation" class="plotly-chart"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab Panel 3: Machine Learning Training -->
+    <div class="tab-panel" id="panel-training">
+        <!-- Ready to Train Callout -->
+        <div class="ready-train-card" id="ready-train-card" {% if model_trained %}style="display:none;"{% endif %}>
+            <div class="ready-content">
+                <i class="fa-solid fa-microchip-scale ml-feature-icon"></i>
+                <h2>Execute Machine Learning Pipeline</h2>
+                <p>
+                    Clean rows, encode categorical columns, scale numerical features, and evaluate multiple algorithms in parallel (Logistic Regression, Decision Trees, Random Forest, SVM, and XGBoost).
+                </p>
+                <button class="btn btn-primary btn-large" id="btn-run-training">
+                    <i class="fa-solid fa-play"></i> Train Churn Predictors
+                </button>
+            </div>
+        </div>
+
+        <!-- Results Container -->
+        <div class="training-results-area" id="training-results-area" {% if not model_trained %}style="display:none;"{% endif %}>
+
+            <!-- Best Model Announcement -->
+            <div class="best-model-banner">
+                <div class="banner-icon"><i class="fa-solid fa-trophy"></i></div>
+                <div class="banner-details">
+                    <h3>Best Performing Model Selected</h3>
+                    <h2 id="best-model-name-text">Random Forest Classifier</h2>
+                    <p>This model exhibits the highest F1-Score on out-of-sample testing data and has been selected for production predictions.</p>
+                </div>
+            </div>
+
+            <!-- Model Performance Leaderboard -->
+            <div class="dashboard-grid">
+                <div class="grid-card col-span-4">
+                    <h3>Model Performance Leaderboard (Test Data Split)</h3>
+                    <div class="glass-table-wrapper">
+                        <table class="responsive-table" id="table-leaderboard">
+                            <thead>
+                                <tr>
+                                    <th>Model Name</th>
+                                    <th>Accuracy</th>
+                                    <th>Precision</th>
+                                    <th>Recall</th>
+                                    <th>F1 Score</th>
+                                    <th>ROC-AUC</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="leaderboard-tbody">
+                                <!-- Leaderboard entries will be dynamically injected -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Training Validation Charts -->
+                <div class="grid-card col-span-2">
+                    <h3>ROC Curve Comparison</h3>
+                    <div id="chart-roc-comparison" class="plotly-chart"></div>
+                </div>
+                <div class="grid-card col-span-2">
+                    <h3>Confusion Matrix (Best Model)</h3>
+                    <div id="chart-confusion-matrix" class="plotly-chart"></div>
+                </div>
+                <div class="grid-card col-span-4">
+                    <h3>Global Feature Importance (Best Model)</h3>
+                    <div id="chart-feature-importance" class="plotly-chart"></div>
+                </div>
+            </div>
+
+            <!-- Next Steps -->
+            <div class="dashboard-actions-row">
+                <a href="{{ url_for('prediction_page') }}" class="btn btn-primary btn-large">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Proceed to Prediction Center
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
