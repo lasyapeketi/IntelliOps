@@ -1,0 +1,30 @@
+{
+  "dataset": "ecommerce_demand_weekly.csv",
+  "date_column": "date",
+  "product_column": "sku",
+  "target_column": "true_demand",
+  "split_method": "chronological, by date; no random shuffling",
+  "evaluation": "Rolling one-week-ahead predictions: prior observed demand is available at each forecast origin; later test rows may use actual demand from earlier test weeks, as in repeated weekly operation.",
+  "train_rows": 18977,
+  "test_rows": 5013,
+  "split_date": "2024-07-08",
+  "test_start_date": "2024-07-08",
+  "test_end_date": "2024-12-30",
+  "metrics": {
+    "autoregressive_linear_baseline": {
+      "mae": 9.611037587497846,
+      "rmse": 14.229171844542202
+    },
+    "random_forest": {
+      "mae": 8.253019198403555,
+      "rmse": 12.125149637173113
+    }
+  },
+  "selected_model": "random_forest",
+  "selection_criterion": "lowest test MAE; test metrics are for comparison",
+  "notes": [
+    "Demand targets with missing or invalid dates, product IDs, or target values are excluded; targets are not imputed.",
+    "Duplicate SKU-week rows are rejected because the schema does not establish that summing them is valid.",
+    "Future multi-week forecasts must be recursive; forecasted demand is used as the next step's history."
+  ]
+}
