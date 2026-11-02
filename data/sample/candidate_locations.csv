@@ -1,0 +1,4 @@
+name,area,city,footfall,demand,competition,monthly_rent,operating_cost,accessibility,parking,infrastructure,target_match,space_sqm
+Central Market,Main Market Road,Your city,1600,82,58,28000,24000,88,true,82,80,120
+Riverside Junction,Riverside Commercial Zone,Your city,1100,76,34,19000,21000,72,true,70,74,95
+College Road,Education District,Your city,2100,78,46,24000,23000,78,false,76,88,140
